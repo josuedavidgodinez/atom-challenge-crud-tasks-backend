@@ -14,7 +14,7 @@ import {setGlobalOptions} from "firebase-functions";
 admin.initializeApp();
 
 // Importar funciones de usuario
-import {crearUsuario, obtenerUsuarioPorCorreo} from "./functions";
+import {crearUsuario, loginUsuario} from "./functions";
 
 // Start writing functions
 // https://firebase.google.com/docs/functions/typescript
@@ -32,4 +32,4 @@ import {crearUsuario, obtenerUsuarioPorCorreo} from "./functions";
 setGlobalOptions({maxInstances: 10});
 
 // Exportar funciones de usuario
-export {crearUsuario, obtenerUsuarioPorCorreo};
+export {crearUsuario, loginUsuario};

@@ -1,3 +1,4 @@
+import * as admin from "firebase-admin";
 import {DatabaseFirestore} from "../database/basededatos.firestore";
 import {UsuarioModel} from "../models";
 import {Usuario, CrearUsuario} from "../types/usuario.types";
@@ -73,11 +74,11 @@ export class UsuarioService {
   }
 
   /**
-   * Busca un usuario por correo electrónico
-   * @param correo - Correo del usuario a buscar
-   * @returns Promise<{exito: boolean, datos?: Usuario, mensaje: string}>
+   * Autentica un usuario y genera un custom token
+   * @param correo - Correo del usuario a autenticar
+   * @returns Promise<{exito: boolean, token?: string, usuario?: Usuario, mensaje: string}>
    */
-  async obtenerUsuarioPorCorreo(correo: string): Promise<{exito: boolean; datos?: Usuario; mensaje: string}> {
+  async loginUsuario(correo: string): Promise<{exito: boolean; token?: string; usuario?: Usuario; mensaje: string}> {
     try {
       // Validar que el correo no esté vacío
       if (!correo || correo.trim() === "") {
@@ -87,26 +88,32 @@ export class UsuarioService {
         };
       }
 
-      // Buscar el usuario
+      // Verificar que el usuario existe en Firestore
       const usuario = await this.usuarioModel.obtenerPorQuery({correo});
 
-      if (usuario) {
+      if (!usuario) {
         return {
-          exito: true,
-          datos: usuario,
-          mensaje: "Usuario encontrado",
+          exito: false,
+          mensaje: "Usuario no encontrado",
         };
       }
 
+      // Generar custom token con Firebase Admin
+      const customToken = await admin.auth().createCustomToken(usuario.id, {
+        email: usuario.correo,
+      });
+
       return {
-        exito: false,
-        mensaje: "Usuario no encontrado",
+        exito: true,
+        token: customToken,
+        usuario: usuario,
+        mensaje: "Login exitoso",
       };
     } catch (error) {
-      console.error("Error en obtenerUsuarioPorCorreo:", error);
+      console.error("Error en loginUsuario:", error);
       return {
         exito: false,
-        mensaje: "Error interno al buscar el usuario",
+        mensaje: "Error interno al procesar login",
       };
     }
   }

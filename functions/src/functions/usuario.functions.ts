@@ -44,38 +44,30 @@ export const crearUsuario = onRequest(
 });
 
 /**
- * Cloud Function: Obtener Usuario por Correo
- * Endpoint: obtenerUsuarioPorCorreo
+ * Cloud Function: Login de Usuario
+ * Endpoint: loginUsuario
  * Método: POST
  * Body esperado: {correo: string}
+ * Retorna: {exito: boolean, token?: string, usuario?: Usuario, mensaje: string}
  */
-export const obtenerUsuarioPorCorreo = onRequest(
+export const loginUsuario = onRequest(
     {invoker: "public"},
     async (request, response) => {
   if (!validarMetodoPost(request, response)) return;
 
   try {
-    // Validar que hay datos en el request
-    if (!request.body || !request.body.correo) {
-      response.status(400).send({
-        exito: false,
-        mensaje: "El correo electrónico es requerido",
-      });
-      return;
-    }
+    const correo: string = request?.body?.correo;
 
-    const correo: string = request.body.correo;
+    // Llamar al servicio para autenticar el usuario
+    const {exito, token, usuario, mensaje} = await usuarioService.loginUsuario(correo);
 
-    // Llamar al servicio para obtener el usuario
-    const {exito, datos, mensaje} = await usuarioService.obtenerUsuarioPorCorreo(correo);
-
-    const statusCode = exito ? 200 : 400;
-    response.status(statusCode).send({exito, datos, mensaje});
+    const statusCode = exito ? 200 : 401;
+    response.status(statusCode).send({exito, token, usuario, mensaje});
   } catch (error) {
-    console.error("Error en obtenerUsuarioPorCorreo cloud function:", error);
+    console.error("Error en loginUsuario cloud function:", error);
     response.status(500).send({
       exito: false,
-      mensaje: "Error al procesar la solicitud",
+      mensaje: "Error al procesar login",
     });
   }
 });
