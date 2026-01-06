@@ -1,6 +1,7 @@
 import {onRequest} from "firebase-functions/v2/https";
 import {UsuarioService} from "../services";
 import {CrearUsuario} from "../types/usuario.types";
+import {validarMetodoPost} from "../middlewares/validarMetodoPost";
 
 const usuarioService = new UsuarioService();
 
@@ -13,14 +14,7 @@ const usuarioService = new UsuarioService();
 export const crearUsuario = onRequest(
     {invoker: "public"},
     async (request, response) => {
-  // Validar que sea método POST
-  if (request.method !== "POST") {
-    response.status(405).send({
-      exito: false,
-      mensaje: "Solo se permiten solicitudes POST",
-    });
-    return;
-  }
+  if (!validarMetodoPost(request, response)) return;
 
   try {
     // Validar que hay datos en el request
@@ -58,14 +52,7 @@ export const crearUsuario = onRequest(
 export const obtenerUsuarioPorCorreo = onRequest(
     {invoker: "public"},
     async (request, response) => {
-  // Validar que sea método POST
-  if (request.method !== "POST") {
-    response.status(405).send({
-      exito: false,
-      mensaje: "Solo se permiten solicitudes POST",
-    });
-    return;
-  }
+  if (!validarMetodoPost(request, response)) return;
 
   try {
     // Validar que hay datos en el request
