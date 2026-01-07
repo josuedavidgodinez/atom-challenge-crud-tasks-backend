@@ -41,7 +41,7 @@ export class TareaService {
       }
 
       const tareas = await this.tareaModel.obtenerPorUsuario(usuarioId);
-      return {exito: true, datos: tareas, mensaje: tareas.length ? "Tareas encontradas" : "Sin tareas"};
+      return {exito: true, datos: tareas, mensaje: tareas.length ? "Se han encontrado tareas" : "Sin tareas"};
     } catch (error) {
       console.error("Error en obtenerTareasPorUsuario:", error);
       return {exito: false, mensaje: "Error interno al obtener tareas"};
