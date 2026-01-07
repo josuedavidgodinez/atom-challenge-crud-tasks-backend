@@ -13,8 +13,8 @@ import {setGlobalOptions} from "firebase-functions";
 // Inicializar Firebase Admin
 admin.initializeApp();
 
-// Importar funciones de usuario
-import {crearUsuario, loginUsuario} from "./functions";
+// Importar funciones HTTP
+import {crearUsuario, loginUsuario, obtenerTareasPorUsuario, crearTarea} from "./functions";
 
 // Start writing functions
 // https://firebase.google.com/docs/functions/typescript
@@ -31,5 +31,5 @@ import {crearUsuario, loginUsuario} from "./functions";
 // this will be the maximum concurrent request count.
 setGlobalOptions({maxInstances: 10});
 
-// Exportar funciones de usuario
-export {crearUsuario, loginUsuario};
+// Exportar funciones HTTP
+export {crearUsuario, loginUsuario, obtenerTareasPorUsuario, crearTarea};
