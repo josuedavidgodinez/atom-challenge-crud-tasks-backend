@@ -1,0 +1,56 @@
+name: CD - Deploy to Firebase
+
+on:
+  workflow_run:
+    workflows: ["CI - Continuous Integration"]
+    types:
+      - completed
+    branches:
+      - main
+  workflow_dispatch:  # Permite ejecutar manualmente el deploy
+
+jobs:
+  deploy:
+    name: Deploy to Firebase Cloud Functions
+    runs-on: ubuntu-latest
+    # Solo ejecutar si el workflow de CI fue exitoso
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          cache: 'npm'
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Install dependencies
+        working-directory: functions
+        run: npm ci
+
+      - name: Build TypeScript
+        working-directory: functions
+        run: npm run build
+
+      - name: Deploy to Firebase
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: firebase deploy --only functions --token "$FIREBASE_TOKEN" --non-interactive
+
+      - name: Deployment Success Notification
+        if: success()
+        run: |
+          echo "✅ Deployment to Firebase Cloud Functions completed successfully!"
+          echo "Timestamp: $(date)"
+
+      - name: Deployment Failure Notification
+        if: failure()
+        run: |
+          echo "❌ Deployment to Firebase Cloud Functions failed!"
+          echo "Please check the logs above for details."
