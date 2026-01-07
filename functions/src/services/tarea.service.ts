@@ -1,13 +1,14 @@
-import {Timestamp} from "@google-cloud/firestore";
 import {Tarea, CrearTarea, CrearTareaPayload, ActualizarTareaPayload} from "../types/tarea.types";
 import {TareaModel} from "../models";
-import {BasedeDatos} from "../types";
+import {BasedeDatos, ITiempo} from "../types";
 
 export class TareaService {
   private tareaModel: TareaModel;
+  private tiempo: ITiempo;
 
-  constructor(db: BasedeDatos) {
+  constructor(db: BasedeDatos, tiempo: ITiempo) {
     this.tareaModel = new TareaModel(db);
+    this.tiempo = tiempo;
   }
 
   /**
@@ -69,7 +70,7 @@ export class TareaService {
         titulo: payload.titulo.trim(),
         descripcion: (payload.descripcion || "").trim(),
         estado,
-        fecha_de_creacion: Timestamp.now(),
+        fecha_de_creacion: this.tiempo.ahora(),
         usuario: `/usuarios/${usuarioId}`,
       };
 

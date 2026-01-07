@@ -1,16 +1,17 @@
-import * as admin from "firebase-admin";
 import {UsuarioModel} from "../models";
 import {Usuario, CrearUsuario} from "../types/usuario.types";
-import {BasedeDatos} from "../types";
+import {BasedeDatos, IAutenticacion} from "../types";
 
 /**
  * Servicio de Usuario - Lógica de negocio para operaciones de usuario
  */
 export class UsuarioService {
   private usuarioModel: UsuarioModel;
+  private autenticacion: IAutenticacion;
 
-  constructor(db:BasedeDatos) {
+  constructor(db: BasedeDatos, autenticacion: IAutenticacion) {
     this.usuarioModel = new UsuarioModel(db);
+    this.autenticacion = autenticacion;
   }
 
   /**
@@ -97,8 +98,8 @@ export class UsuarioService {
         };
       }
 
-      // Generar custom token con Firebase Admin
-      const customToken = await admin.auth().createCustomToken(usuario.id, {
+      // Generar custom token usando el servicio de autenticación inyectado
+      const customToken = await this.autenticacion.crearTokenPersonalizado(usuario.id, {
         email: usuario.correo,
       });
 

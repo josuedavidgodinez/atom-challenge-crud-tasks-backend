@@ -4,11 +4,13 @@ import {CrearUsuario} from "../types/usuario.types";
 import {validarMetodoPost} from "../middlewares/validarMetodoPost";
 import {validarJSON} from "../middlewares/validarJSON";
 import {DatabaseFirestore} from "../database/basededatos.firestore";
+import {AutenticacionFirebase} from "../adapters";
 import cors from "cors";
 
 const corsHandler = cors({origin: true});
 const db = DatabaseFirestore.obtenerInstancia();
-const usuarioService = new UsuarioService(db);
+const autenticacion = new AutenticacionFirebase();
+const usuarioService = new UsuarioService(db, autenticacion);
 
 /**
  * Cloud Function: Crear Usuario

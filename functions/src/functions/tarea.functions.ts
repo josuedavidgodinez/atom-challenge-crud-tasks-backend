@@ -7,11 +7,13 @@ import {validarMetodoPut} from "../middlewares/validarMetodoPut";
 import {validarMetodoDelete} from "../middlewares/validarMetodoDelete";
 import {validarJSON} from "../middlewares/validarJSON";
 import {DatabaseFirestore} from "../database/basededatos.firestore";
+import {TiempoFirestore} from "../adapters";
 import cors from "cors";
 
 const corsHandler = cors({origin: true});
 const db = DatabaseFirestore.obtenerInstancia();
-const tareaService = new TareaService(db);
+const tiempo = new TiempoFirestore();
+const tareaService = new TareaService(db, tiempo);
 
 /**
  * Cloud Function: Obtener Tareas por Usuario autenticado
