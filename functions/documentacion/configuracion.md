@@ -2,7 +2,7 @@
 
 ## Requisitos
 
-- Node.js 24.x + Firebase CLI + Java 17+
+- Node.js 24.x + Firebase CLI + Java 21+
 - Cuenta de Firebase
 
 ## Setup Local

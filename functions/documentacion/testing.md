@@ -43,7 +43,7 @@ tests/
 # Puertos en uso
 lsof -i :5001 && kill -9 <PID>
 
-# Verificar Java 17+
+# Verificar Java 21+
 java -version
 ```
 
