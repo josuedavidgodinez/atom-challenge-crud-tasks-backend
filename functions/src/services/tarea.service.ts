@@ -1,13 +1,12 @@
 import {Timestamp} from "@google-cloud/firestore";
-import {DatabaseFirestore} from "../database/basededatos.firestore";
 import {Tarea, CrearTarea, CrearTareaPayload, ActualizarTareaPayload} from "../types/tarea.types";
 import {TareaModel} from "../models";
+import {BasedeDatos} from "../types";
 
 export class TareaService {
   private tareaModel: TareaModel;
 
-  constructor() {
-    const db = DatabaseFirestore.obtenerInstancia();
+  constructor(db: BasedeDatos) {
     this.tareaModel = new TareaModel(db);
   }
 

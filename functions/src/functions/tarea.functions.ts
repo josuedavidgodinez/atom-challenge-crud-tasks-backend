@@ -6,8 +6,12 @@ import {validarMetodoPost} from "../middlewares/validarMetodoPost";
 import {validarMetodoPut} from "../middlewares/validarMetodoPut";
 import {validarMetodoDelete} from "../middlewares/validarMetodoDelete";
 import {validarJSON} from "../middlewares/validarJSON";
+import {DatabaseFirestore} from "../database/basededatos.firestore";
+import cors from "cors";
 
-const tareaService = new TareaService();
+const corsHandler = cors({origin: true});
+const db = DatabaseFirestore.obtenerInstancia();
+const tareaService = new TareaService(db);
 
 /**
  * Cloud Function: Obtener Tareas por Usuario autenticado
@@ -17,18 +21,20 @@ const tareaService = new TareaService();
 export const obtenerTareasPorUsuario = onRequest(
   {invoker: "public"},
   async (request: RequestConUsuario, response) => {
-    if (!validarMetodoGet(request, response)) return;
-    if (!await validarAutenticacion(request, response)) return;
+    return corsHandler(request, response, async () => {
+      if (!validarMetodoGet(request, response)) return;
+      if (!await validarAutenticacion(request, response)) return;
 
-    try {
-      const uid = request.usuario!.uid;
-      const {exito, datos, mensaje} = await tareaService.obtenerTareasPorUsuario(uid);
-      const statusCode = exito ? 200 : 400;
-      response.status(statusCode).send({exito, datos, mensaje});
-    } catch (error) {
-      console.error("Error en obtenerTareasPorUsuario:", error);
-      response.status(500).send({exito: false, mensaje: "Error al procesar la solicitud"});
-    }
+      try {
+        const uid = request.usuario!.uid;
+        const {exito, datos, mensaje} = await tareaService.obtenerTareasPorUsuario(uid);
+        const statusCode = exito ? 200 : 400;
+        response.status(statusCode).send({exito, datos, mensaje});
+      } catch (error) {
+        console.error("Error en obtenerTareasPorUsuario:", error);
+        response.status(500).send({exito: false, mensaje: "Error al procesar la solicitud"});
+      }
+    });
   }
 );
 
@@ -40,21 +46,23 @@ export const obtenerTareasPorUsuario = onRequest(
 export const crearTarea = onRequest(
   {invoker: "public"},
   async (request: RequestConUsuario, response) => {
-    if (!validarMetodoPost(request, response)) return;
-    if (!validarJSON(request, response)) return;
-    if (!await validarAutenticacion(request, response)) return;
+    return corsHandler(request, response, async () => {
+      if (!validarMetodoPost(request, response)) return;
+      if (!validarJSON(request, response)) return;
+      if (!await validarAutenticacion(request, response)) return;
 
-    try {
-      const uid = request.usuario!.uid;
-      const payload = request.body || {};
+      try {
+        const uid = request.usuario!.uid;
+        const payload = request.body || {};
 
-      const {exito, mensaje} = await tareaService.crearTarea(uid, payload);
-      const statusCode = exito ? 200 : 400;
-      response.status(statusCode).send({exito, mensaje});
-    } catch (error) {
-      console.error("Error en crearTarea:", error);
-      response.status(500).send({exito: false, mensaje: "Error al procesar la solicitud"});
-    }
+        const {exito, mensaje} = await tareaService.crearTarea(uid, payload);
+        const statusCode = exito ? 200 : 400;
+        response.status(statusCode).send({exito, mensaje});
+      } catch (error) {
+        console.error("Error en crearTarea:", error);
+        response.status(500).send({exito: false, mensaje: "Error al procesar la solicitud"});
+      }
+    });
   }
 );
 
@@ -67,26 +75,28 @@ export const crearTarea = onRequest(
 export const actualizarTarea = onRequest(
   {invoker: "public"},
   async (request: RequestConUsuario, response) => {
-    if (!validarMetodoPut(request, response)) return;
-    if (!validarJSON(request, response)) return;
-    if (!await validarAutenticacion(request, response)) return;
+    return corsHandler(request, response, async () => {
+      if (!validarMetodoPut(request, response)) return;
+      if (!validarJSON(request, response)) return;
+      if (!await validarAutenticacion(request, response)) return;
 
-    try {
-      const uid = request.usuario!.uid;
-      const {tareaId, ...payload} = request.body || {};
+      try {
+        const uid = request.usuario!.uid;
+        const {tareaId, ...payload} = request.body || {};
 
-      if (!tareaId) {
-        response.status(400).send({exito: false, mensaje: "El ID de tarea es requerido"});
-        return;
+        if (!tareaId) {
+          response.status(400).send({exito: false, mensaje: "El ID de tarea es requerido"});
+          return;
+        }
+
+        const {exito, mensaje} = await tareaService.actualizarTarea(uid, tareaId, payload);
+        const statusCode = exito ? 200 : 400;
+        response.status(statusCode).send({exito, mensaje});
+      } catch (error) {
+        console.error("Error en actualizarTarea:", error);
+        response.status(500).send({exito: false, mensaje: "Error al procesar la solicitud"});
       }
-
-      const {exito, mensaje} = await tareaService.actualizarTarea(uid, tareaId, payload);
-      const statusCode = exito ? 200 : 400;
-      response.status(statusCode).send({exito, mensaje});
-    } catch (error) {
-      console.error("Error en actualizarTarea:", error);
-      response.status(500).send({exito: false, mensaje: "Error al procesar la solicitud"});
-    }
+    });
   }
 );
 
@@ -99,25 +109,27 @@ export const actualizarTarea = onRequest(
 export const eliminarTarea = onRequest(
   {invoker: "public"},
   async (request: RequestConUsuario, response) => {
-    if (!validarMetodoDelete(request, response)) return;
-    if (!validarJSON(request, response)) return;
-    if (!await validarAutenticacion(request, response)) return;
+    return corsHandler(request, response, async () => {
+      if (!validarMetodoDelete(request, response)) return;
+      if (!validarJSON(request, response)) return;
+      if (!await validarAutenticacion(request, response)) return;
 
-    try {
-      const uid = request.usuario!.uid;
-      const {tareaId} = request.body || {};
+      try {
+        const uid = request.usuario!.uid;
+        const {tareaId} = request.body || {};
 
-      if (!tareaId) {
-        response.status(400).send({exito: false, mensaje: "El ID de tarea es requerido"});
-        return;
+        if (!tareaId) {
+          response.status(400).send({exito: false, mensaje: "El ID de tarea es requerido"});
+          return;
+        }
+
+        const {exito, mensaje} = await tareaService.eliminarTarea(uid, tareaId);
+        const statusCode = exito ? 200 : 400;
+        response.status(statusCode).send({exito, mensaje});
+      } catch (error) {
+        console.error("Error en eliminarTarea:", error);
+        response.status(500).send({exito: false, mensaje: "Error al procesar la solicitud"});
       }
-
-      const {exito, mensaje} = await tareaService.eliminarTarea(uid, tareaId);
-      const statusCode = exito ? 200 : 400;
-      response.status(statusCode).send({exito, mensaje});
-    } catch (error) {
-      console.error("Error en eliminarTarea:", error);
-      response.status(500).send({exito: false, mensaje: "Error al procesar la solicitud"});
-    }
+    });
   }
 );

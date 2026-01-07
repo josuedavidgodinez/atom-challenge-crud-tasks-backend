@@ -3,8 +3,12 @@ import {UsuarioService} from "../services";
 import {CrearUsuario} from "../types/usuario.types";
 import {validarMetodoPost} from "../middlewares/validarMetodoPost";
 import {validarJSON} from "../middlewares/validarJSON";
+import {DatabaseFirestore} from "../database/basededatos.firestore";
+import cors from "cors";
 
-const usuarioService = new UsuarioService();
+const corsHandler = cors({origin: true});
+const db = DatabaseFirestore.obtenerInstancia();
+const usuarioService = new UsuarioService(db);
 
 /**
  * Cloud Function: Crear Usuario
@@ -15,8 +19,9 @@ const usuarioService = new UsuarioService();
 export const crearUsuario = onRequest(
     {invoker: "public"},
     async (request, response) => {
-  if (!validarMetodoPost(request, response)) return;
-  if (!validarJSON(request, response)) return;
+  return corsHandler(request, response, async () => {
+    if (!validarMetodoPost(request, response)) return;
+    if (!validarJSON(request, response)) return;
 
   try {
     // Validar que hay datos en el request
@@ -43,6 +48,7 @@ export const crearUsuario = onRequest(
       mensaje: "Error al procesar la solicitud",
     });
   }
+  });
 });
 
 /**
@@ -55,8 +61,9 @@ export const crearUsuario = onRequest(
 export const loginUsuario = onRequest(
     {invoker: "public"},
     async (request, response) => {
-  if (!validarMetodoPost(request, response)) return;
-  if (!validarJSON(request, response)) return;
+  return corsHandler(request, response, async () => {
+    if (!validarMetodoPost(request, response)) return;
+    if (!validarJSON(request, response)) return;
 
   try {
     const correo: string = request?.body?.correo;
@@ -73,4 +80,5 @@ export const loginUsuario = onRequest(
       mensaje: "Error al procesar login",
     });
   }
+  });
 });

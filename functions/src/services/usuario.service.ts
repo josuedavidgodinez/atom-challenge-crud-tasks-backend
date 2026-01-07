@@ -1,7 +1,7 @@
 import * as admin from "firebase-admin";
-import {DatabaseFirestore} from "../database/basededatos.firestore";
 import {UsuarioModel} from "../models";
 import {Usuario, CrearUsuario} from "../types/usuario.types";
+import {BasedeDatos} from "../types";
 
 /**
  * Servicio de Usuario - Lógica de negocio para operaciones de usuario
@@ -9,8 +9,7 @@ import {Usuario, CrearUsuario} from "../types/usuario.types";
 export class UsuarioService {
   private usuarioModel: UsuarioModel;
 
-  constructor() {
-    const db = DatabaseFirestore.obtenerInstancia();
+  constructor(db:BasedeDatos) {
     this.usuarioModel = new UsuarioModel(db);
   }
 
