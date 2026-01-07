@@ -90,8 +90,10 @@ describe("Usuario Integration Tests", () => {
       expect(response.data).toHaveProperty("token");
       expect(response.data).toHaveProperty("usuario");
       expect(response.data).toHaveProperty("mensaje", "Login exitoso");
-      expect(response.data.usuario).toHaveProperty("id");
-      expect(response.data.usuario).toHaveProperty("correo", correo);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((response.data as any).usuario).toHaveProperty("id");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((response.data as any).usuario).toHaveProperty("correo", correo);
     });
 
     it("debe fallar al hacer login con usuario no existente (loginUsuarioKO)", async () => {
@@ -126,16 +128,20 @@ describe("Usuario Integration Tests", () => {
 
       // Assert 1
       expect(registroResponse.status).toBe(200);
-      expect(registroResponse.data.exito).toBe(true);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((registroResponse.data as any).exito).toBe(true);
 
       // Act 2 - Login
       const loginResponse = await httpClient.post("loginUsuario", {correo});
 
       // Assert 2
       expect(loginResponse.status).toBe(200);
-      expect(loginResponse.data.exito).toBe(true);
-      expect(loginResponse.data.token).toBeDefined();
-      expect(loginResponse.data.usuario.correo).toBe(correo);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((loginResponse.data as any).exito).toBe(true);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((loginResponse.data as any).token).toBeDefined();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((loginResponse.data as any).usuario.correo).toBe(correo);
     });
   });
 });

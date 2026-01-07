@@ -26,7 +26,8 @@ describe("Tarea Integration Tests", () => {
     await httpClient.post("crearUsuario", {correo});
 
     const loginResponse = await httpClient.post("loginUsuario", {correo});
-    authToken = loginResponse.data.token;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    authToken = (loginResponse.data as any).token;
 
     // Configurar token en el cliente
     httpClient.setAuthToken(authToken);
@@ -101,7 +102,8 @@ describe("Tarea Integration Tests", () => {
 
       // Assert
       expect(response.status).toBe(200);
-      expect(response.data.exito).toBe(true);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((response.data as any).exito).toBe(true);
     });
 
     it("debe validar el estado de la tarea", async () => {
@@ -144,11 +146,14 @@ describe("Tarea Integration Tests", () => {
       expect(response.data).toHaveProperty("exito", true);
       expect(response.data).toHaveProperty("datos");
       expect(response.data).toHaveProperty("mensaje", "Se han encontrado tareas");
-      expect(Array.isArray(response.data.datos)).toBe(true);
-      expect(response.data.datos.length).toBeGreaterThanOrEqual(2);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect(Array.isArray((response.data as any).datos)).toBe(true);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((response.data as any).datos.length).toBeGreaterThanOrEqual(2);
 
       // Verificar estructura de las tareas
-      const tarea = response.data.datos[0];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const tarea = (response.data as any).datos[0];
       expect(tarea).toHaveProperty("id");
       expect(tarea).toHaveProperty("titulo");
       expect(tarea).toHaveProperty("descripcion");
@@ -178,8 +183,10 @@ describe("Tarea Integration Tests", () => {
       expect(response.status).toBe(200);
       expect(response.data).toHaveProperty("exito", true);
       expect(response.data).toHaveProperty("datos");
-      expect(Array.isArray(response.data.datos)).toBe(true);
-      expect(response.data.datos.length).toBe(0);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect(Array.isArray((response.data as any).datos)).toBe(true);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((response.data as any).datos.length).toBe(0);
     });
 
     it("debe retornar solo las tareas del usuario autenticado", async () => {
@@ -195,7 +202,8 @@ describe("Tarea Integration Tests", () => {
       await httpClient.post("crearUsuario", {correo: otroCorreo});
       const otroLogin = await httpClient.post("loginUsuario", {correo: otroCorreo});
 
-      httpClient.setAuthToken(otroLogin.data.token);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      httpClient.setAuthToken((otroLogin.data as any).token);
       await httpClient.post("crearTarea", {
         titulo: "Tarea de otro",
         descripcion: "Tarea de otro usuario",
@@ -208,8 +216,10 @@ describe("Tarea Integration Tests", () => {
 
       // Assert - Solo debe retornar la tarea del usuario original
       expect(response.status).toBe(200);
-      expect(response.data.datos.length).toBe(1);
-      expect(response.data.datos[0].titulo).toBe("Mi tarea");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((response.data as any).datos.length).toBe(1);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((response.data as any).datos[0].titulo).toBe("Mi tarea");
     });
   });
 
@@ -226,7 +236,8 @@ describe("Tarea Integration Tests", () => {
 
       // Obtener el ID de la tarea
       const tareasResponse = await httpClient.get("obtenerTareasPorUsuario");
-      tareaId = tareasResponse.data.datos[0].id;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      tareaId = (tareasResponse.data as any).datos[0].id;
     });
 
     it("debe actualizar una tarea exitosamente (actualizartareaOK)", async () => {
@@ -248,7 +259,8 @@ describe("Tarea Integration Tests", () => {
 
       // Verificar que la tarea se actualizó
       const tareasResponse = await httpClient.get("obtenerTareasPorUsuario");
-      const tareaActualizada = tareasResponse.data.datos.find((t: {id: string}) => t.id === tareaId);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const tareaActualizada = (tareasResponse.data as any).datos.find((t: {id: string}) => t.id === tareaId);
       expect(tareaActualizada.titulo).toBe("Tarea actualizada");
       expect(tareaActualizada.descripcion).toBe("Descripción actualizada");
       expect(tareaActualizada.estado).toBe("C");
@@ -297,7 +309,8 @@ describe("Tarea Integration Tests", () => {
       const otroLogin = await httpClient.post("loginUsuario", {correo: otroCorreo});
 
       // Intentar actualizar con el otro usuario
-      httpClient.setAuthToken(otroLogin.data.token);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      httpClient.setAuthToken((otroLogin.data as any).token);
       const actualizacion = {
         tareaId, // ID de tarea del primer usuario
         titulo: "Intento de actualizar tarea ajena",
@@ -327,7 +340,8 @@ describe("Tarea Integration Tests", () => {
 
       // Obtener el ID de la tarea
       const tareasResponse = await httpClient.get("obtenerTareasPorUsuario");
-      tareaId = tareasResponse.data.datos[0].id;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      tareaId = (tareasResponse.data as any).datos[0].id;
     });
 
     it("debe eliminar una tarea exitosamente (eliminartareaOK)", async () => {
@@ -341,7 +355,8 @@ describe("Tarea Integration Tests", () => {
 
       // Verificar que la tarea ya no existe
       const tareasResponse = await httpClient.get("obtenerTareasPorUsuario");
-      const tareaEliminada = tareasResponse.data.datos.find((t: {id: string}) => t.id === tareaId);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const tareaEliminada = (tareasResponse.data as any).datos.find((t: {id: string}) => t.id === tareaId);
       expect(tareaEliminada).toBeUndefined();
     });
 
@@ -376,7 +391,8 @@ describe("Tarea Integration Tests", () => {
       const otroLogin = await httpClient.post("loginUsuario", {correo: otroCorreo});
 
       // Intentar eliminar con el otro usuario
-      httpClient.setAuthToken(otroLogin.data.token);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      httpClient.setAuthToken((otroLogin.data as any).token);
 
       // Act
       const response = await httpClient.delete("eliminarTarea", {tareaId});
@@ -400,9 +416,11 @@ describe("Tarea Integration Tests", () => {
       // 2. Listar y obtener ID
       const listarResponse = await httpClient.get("obtenerTareasPorUsuario");
       expect(listarResponse.status).toBe(200);
-      expect(listarResponse.data.datos.length).toBe(1);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((listarResponse.data as any).datos.length).toBe(1);
 
-      const tareaId = listarResponse.data.datos[0].id;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const tareaId = (listarResponse.data as any).datos[0].id;
 
       // 3. Actualizar
       const actualizarResponse = await httpClient.put("actualizarTarea", {
@@ -415,8 +433,10 @@ describe("Tarea Integration Tests", () => {
 
       // 4. Verificar actualización
       const verificarResponse = await httpClient.get("obtenerTareasPorUsuario");
-      expect(verificarResponse.data.datos[0].titulo).toBe("Tarea actualizada");
-      expect(verificarResponse.data.datos[0].estado).toBe("C");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((verificarResponse.data as any).datos[0].titulo).toBe("Tarea actualizada");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((verificarResponse.data as any).datos[0].estado).toBe("C");
 
       // 5. Eliminar
       const eliminarResponse = await httpClient.delete("eliminarTarea", {tareaId});
@@ -424,7 +444,8 @@ describe("Tarea Integration Tests", () => {
 
       // 6. Verificar eliminación
       const finalResponse = await httpClient.get("obtenerTareasPorUsuario");
-      expect(finalResponse.data.datos.length).toBe(0);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((finalResponse.data as any).datos.length).toBe(0);
     });
   });
 });
