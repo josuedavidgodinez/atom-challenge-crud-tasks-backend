@@ -1,4 +1,26 @@
 /**
+ * Información del usuario decodificada del token
+ */
+export interface UsuarioDecodificado {
+  uid: string;
+  email?: string;
+}
+
+/**
+ * Abstracción para verificar tokens de autenticación
+ * Permite inyectar diferentes implementaciones (Firebase Auth, JWT, Auth0, etc.)
+ */
+export interface IVerificadorToken {
+  /**
+   * Verifica un token de autenticación y retorna la información del usuario
+   * @param token - Token a verificar
+   * @returns Información del usuario si el token es válido
+   * @throws Error si el token es inválido o expirado
+   */
+  verificarToken(token: string): Promise<UsuarioDecodificado>;
+}
+
+/**
  * Abstracción para el manejo de autenticación
  * Permite inyectar diferentes implementaciones (Firebase Auth, JWT, etc.)
  */

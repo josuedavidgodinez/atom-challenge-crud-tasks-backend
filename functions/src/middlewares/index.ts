@@ -1,7 +1,16 @@
-export {validarMetodoPost} from "./validarMetodoPost";
-export {validarMetodoGet} from "./validarMetodoGet";
-export {validarMetodoPut} from "./validarMetodoPut";
-export {validarMetodoDelete} from "./validarMetodoDelete";
+// Middleware genérico de validación de métodos HTTP
+export {
+  crearValidadorMetodo,
+  validarMetodoGet,
+  validarMetodoPost,
+  validarMetodoPut,
+  validarMetodoDelete,
+  validarMetodoPatch,
+} from "./validarMetodo";
+
+// Middleware de validación de JSON
 export {validarJSON} from "./validarJSON";
-export {validarAutenticacion} from "./validarAutenticacion";
+
+// Middleware de autenticación
+export {crearMiddlewareAutenticacion} from "./validarAutenticacion";
 export type {RequestConUsuario} from "./validarAutenticacion";

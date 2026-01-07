@@ -21,4 +21,4 @@ export type {ITiempo} from "./tiempo.types";
 /**
  * Tipos relacionados con Autenticación
  */
-export type {IAutenticacion} from "./autenticacion.types";
+export type {IAutenticacion, IVerificadorToken, UsuarioDecodificado} from "./autenticacion.types";

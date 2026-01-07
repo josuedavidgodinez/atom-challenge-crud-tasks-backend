@@ -61,7 +61,9 @@ Implementaciones concretas de dependencias externas:
 - `TiempoFirestore` - [functions/src/adapters/tiempo.firestore.ts](functions/src/adapters/tiempo.firestore.ts)
   - Adaptador para manejo de timestamps
 - `AutenticacionFirebase` - [functions/src/adapters/autenticacion.firebase.ts](functions/src/adapters/autenticacion.firebase.ts)
-  - Adaptador para generación de tokens
+  - Adaptador para generación de tokens personalizados
+- `VerificadorTokenFirebase` - [functions/src/adapters/verificador-token.firebase.ts](functions/src/adapters/verificador-token.firebase.ts)
+  - Adaptador para verificación de tokens JWT
 
 **Responsabilidad**: Aislar dependencias de frameworks externos mediante interfaces.
 
@@ -70,7 +72,9 @@ Definiciones compartidas en [functions/src/types](functions/src/types/index.ts):
 
 - `BasedeDatos` - Interfaz para operaciones CRUD
 - `ITiempo` - Interfaz para timestamps
-- `IAutenticacion` - Interfaz para autenticación
+- `IAutenticacion` - Interfaz para generación de tokens
+- `IVerificadorToken` - Interfaz para verificación de tokens
+- `UsuarioDecodificado` - Tipo para información del usuario autenticado
 - Modelos de dominio: `Usuario`, `Tarea`
 - DTOs: `CrearUsuario`, `CrearTareaPayload`, `ActualizarTareaPayload`
 
@@ -98,6 +102,23 @@ Las implementaciones concretas son intercambiables:
 
 ### Interface Segregation Principle (ISP)
 Interfaces específicas y enfocadas:
+- `BasedeDatos`: Solo operaciones CRUD necesarias
+- `ITiempo`: Solo operación de timestamp actual
+- `IAutenticacion`: Solo generación de tokens
+- `IVerificadorToken`: Solo verificación de tokens
+- No se fuerzan métodos innecesarios a los implementadores
+
+Ejemplo de segregación correcta:
+```typescript
+// Separadas: generación vs verificación
+interface IAutenticacion {
+  crearTokenPersonalizado(uid: string, claims?: Record<string, unknown>): Promise<string>;
+}
+
+interface IVerificadorToken {
+  verificarToken(token: string): Promise<UsuarioDecodificado>;
+}
+```
 - `BasedeDatos`: Solo operaciones CRUD necesarias
 - `ITiempo`: Solo operación de timestamp actual
 - `IAutenticacion`: Solo generación de tokens
@@ -140,8 +161,27 @@ Ubicación: [functions/src/database/basededatos.firestore.ts](functions/src/data
 ### Adapter Pattern
 Los adaptadores convierten interfaces externas en interfaces esperadas:
 - `TiempoFirestore`: Adapta `Timestamp.now()` a `ITiempo`
-- `AutenticacionFirebase`: Adapta `admin.auth()` a `IAutenticacion`
+- `AutenticacionFirebase`: Adapta `admin.auth().createCustomToken()` a `IAutenticacion`
+- `VerificadorTokenFirebase`: Adapta `admin.auth().verifyIdToken()` a `IVerificadorToken`
 - `DatabaseFirestore`: Adapta Firestore a `BasedeDatos`
+
+**Ejemplo de Adaptador**:
+```typescript
+// Adaptador de verificación de tokens
+export class VerificadorTokenFirebase implements IVerificadorToken {
+  async verificarToken(token: string): Promise<UsuarioDecodificado> {
+    try {
+      const decodedToken = await admin.auth().verifyIdToken(token);
+      return {
+        uid: decodedToken.uid,
+        email: decodedToken.email,
+      };
+    } catch (error) {
+      throw new Error("Token inválido o expirado");
+    }
+  }
+}
+```
 
 **Beneficio**: Desacopla el código de negocio de las bibliotecas externas.
 
@@ -212,29 +252,93 @@ obtenerPorId<T>(coleccion: string, id: string): Promise<T | null>;
 ## Middleware y Cross-Cutting Concerns
 
 ### Validaciones de HTTP
-Middlewares para validación de métodos:
-- `validarMetodoGet` - [functions/src/middlewares/validarMetodoGet.ts](functions/src/middlewares/validarMetodoGet.ts)
-- `validarMetodoPost` - [functions/src/middlewares/validarMetodoPost.ts](functions/src/middlewares/validarMetodoPost.ts)
-- `validarMetodoPut` - [functions/src/middlewares/validarMetodoPut.ts](functions/src/middlewares/validarMetodoPut.ts)
-- `validarMetodoDelete` - [functions/src/middlewares/validarMetodoDelete.ts](functions/src/middlewares/validarMetodoDelete.ts)
+Middleware genérico con Factory Pattern - [functions/src/middlewares/validarMetodo.ts](functions/src/middlewares/validarMetodo.ts):
+
+```typescript
+// Factory genérico (DRY)
+export const crearValidadorMetodo = (metodoPermitido: MetodoHTTP) => {
+  return (request, response) => {
+    if (request.method !== metodoPermitido) {
+      response.status(405).send({ /* ... */ });
+      return false;
+    }
+    return true;
+  };
+};
+
+// Middlewares pre-configurados
+export const validarMetodoGet = crearValidadorMetodo("GET");
+export const validarMetodoPost = crearValidadorMetodo("POST");
+export const validarMetodoPut = crearValidadorMetodo("PUT");
+export const validarMetodoDelete = crearValidadorMetodo("DELETE");
+```
+
+**Beneficios**:
+- Elimina duplicación de código (DRY)
+- Un solo lugar para modificar lógica
+- Fácil agregar nuevos métodos (PATCH, OPTIONS, etc.)
 
 ### Validación de Contenido
-- `validarJSON` - Verifica Content-Type y parseo JSON
+- `validarJSON` - [functions/src/middlewares/validarJSON.ts](functions/src/middlewares/validarJSON.ts)
+- Verifica Content-Type y parseo JSON para métodos con body
 
-### Autenticación
-- `validarAutenticacion` - Verifica JWT y agrega usuario al request
-- Implementado en: [functions/src/middlewares/validarAutenticacion.ts](functions/src/middlewares/validarAutenticacion.ts)
+### Autenticación con Inyección de Dependencias
+
+Middleware factory - [functions/src/middlewares/validarAutenticacion.ts](functions/src/middlewares/validarAutenticacion.ts):
+
+```typescript
+// Factory que recibe el verificador inyectado
+export const crearMiddlewareAutenticacion = (verificador: IVerificadorToken) => {
+  return async (request: RequestConUsuario, response: Response): Promise<boolean> => {
+    try {
+      const authHeader = request.headers.authorization;
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        response.status(401).send({ /* ... */ });
+        return false;
+      }
+      
+      const idToken = authHeader.split("Bearer ")[1];
+      const usuario = await verificador.verificarToken(idToken);
+      request.usuario = usuario;
+      return true;
+    } catch (error) {
+      response.status(401).send({ /* ... */ });
+      return false;
+    }
+  };
+};
+```
+
+**Composición en Cloud Functions**:
+```typescript
+// Inyección de dependencias en el punto de entrada
+const verificadorToken = new VerificadorTokenFirebase();
+const validarAutenticacion = crearMiddlewareAutenticacion(verificadorToken);
+```
+
+**Beneficios de la Nueva Arquitectura**:
+- ✅ **Testeable**: Mockear `IVerificadorToken` fácilmente
+- ✅ **Flexible**: Cambiar de Firebase a Auth0/JWT sin tocar middleware
+- ✅ **SOLID**: Cumple Dependency Inversion completamente
+- ✅ **Independiente**: No acoplado a Firebase en la capa de middleware
 
 ## Seguridad
 
 ### Autenticación
 - **Método**: JWT (JSON Web Tokens) mediante Firebase Authentication
-- **Implementación**: Middleware `validarAutenticacion`
+- **Arquitectura**: Middleware con Dependency Injection
+- **Implementación**: Factory `crearMiddlewareAutenticacion(verificador: IVerificadorToken)`
 - **Flujo**:
   1. Cliente envía `Authorization: Bearer <token>`
-  2. Middleware verifica token con Firebase Admin SDK
-  3. Usuario decodificado se agrega al request
-  4. Funciones acceden a `request.usuario.uid`
+  2. Middleware extrae el token del header
+  3. Verificador inyectado valida el token (Firebase, Auth0, JWT custom, etc.)
+  4. Usuario decodificado se agrega al request
+  5. Funciones acceden a `request.usuario.uid`
+
+**Ventaja de la Arquitectura**:
+- El middleware no conoce la implementación específica (Firebase)
+- Fácil cambiar de proveedor de autenticación
+- 100% testeable con mocks
 
 ### Autorización
 Verificación de permisos a nivel de servicio:
@@ -340,10 +444,24 @@ class TiempoMock implements ITiempo {
   }
 }
 
+// Mock de IVerificadorToken para testing de autenticación
+class VerificadorTokenMock implements IVerificadorToken {
+  async verificarToken(token: string): Promise<UsuarioDecodificado> {
+    if (token === 'token-valido') {
+      return { uid: 'user123', email: 'test@example.com' };
+    }
+    throw new Error('Token inválido');
+  }
+}
+
 // Test de TareaService
 const dbMock = createMockDatabase();
 const tiempoMock = new TiempoMock();
 const tareaService = new TareaService(dbMock, tiempoMock);
+
+// Test de Middleware de Autenticación
+const verificadorMock = new VerificadorTokenMock();
+const validarAuth = crearMiddlewareAutenticacion(verificadorMock);
 ```
 
 **Capas Independientes**:

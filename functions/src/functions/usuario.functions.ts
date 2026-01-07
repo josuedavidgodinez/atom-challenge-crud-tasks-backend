@@ -1,8 +1,7 @@
 import {onRequest} from "firebase-functions/v2/https";
 import {UsuarioService} from "../services";
 import {CrearUsuario} from "../types/usuario.types";
-import {validarMetodoPost} from "../middlewares/validarMetodoPost";
-import {validarJSON} from "../middlewares/validarJSON";
+import {validarMetodoPost, validarJSON} from "../middlewares";
 import {DatabaseFirestore} from "../database/basededatos.firestore";
 import {AutenticacionFirebase} from "../adapters";
 import cors from "cors";

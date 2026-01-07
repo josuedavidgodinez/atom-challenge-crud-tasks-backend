@@ -1,18 +1,17 @@
 import {onRequest} from "firebase-functions/v2/https";
 import {TareaService} from "../services";
-import {validarMetodoGet} from "../middlewares/validarMetodoGet";
-import {validarAutenticacion, RequestConUsuario} from "../middlewares/validarAutenticacion";
-import {validarMetodoPost} from "../middlewares/validarMetodoPost";
-import {validarMetodoPut} from "../middlewares/validarMetodoPut";
-import {validarMetodoDelete} from "../middlewares/validarMetodoDelete";
-import {validarJSON} from "../middlewares/validarJSON";
+import {validarMetodoGet, validarMetodoPost, validarMetodoPut, validarMetodoDelete,
+  crearMiddlewareAutenticacion, RequestConUsuario, validarJSON
+} from "../middlewares";
 import {DatabaseFirestore} from "../database/basededatos.firestore";
-import {TiempoFirestore} from "../adapters";
+import {TiempoFirestore, VerificadorTokenFirebase} from "../adapters";
 import cors from "cors";
 
 const corsHandler = cors({origin: true});
 const db = DatabaseFirestore.obtenerInstancia();
 const tiempo = new TiempoFirestore();
+const verificadorToken = new VerificadorTokenFirebase();
+const validarAutenticacion = crearMiddlewareAutenticacion(verificadorToken);
 const tareaService = new TareaService(db, tiempo);
 
 /**
