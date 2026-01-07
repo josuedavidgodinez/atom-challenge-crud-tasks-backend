@@ -12,7 +12,6 @@ import {FunctionsHttpClient} from "./utils/http-client";
 describe("Tarea Integration Tests", () => {
   let httpClient: FunctionsHttpClient;
   let authToken: string;
-  let usuarioId: string;
 
   beforeAll(() => {
     initializeFirebaseForTests();
@@ -28,7 +27,6 @@ describe("Tarea Integration Tests", () => {
 
     const loginResponse = await httpClient.post("loginUsuario", {correo});
     authToken = loginResponse.data.token;
-    usuarioId = loginResponse.data.usuario.id;
 
     // Configurar token en el cliente
     httpClient.setAuthToken(authToken);
@@ -250,7 +248,7 @@ describe("Tarea Integration Tests", () => {
 
       // Verificar que la tarea se actualizó
       const tareasResponse = await httpClient.get("obtenerTareasPorUsuario");
-      const tareaActualizada = tareasResponse.data.datos.find((t: any) => t.id === tareaId);
+      const tareaActualizada = tareasResponse.data.datos.find((t: {id: string}) => t.id === tareaId);
       expect(tareaActualizada.titulo).toBe("Tarea actualizada");
       expect(tareaActualizada.descripcion).toBe("Descripción actualizada");
       expect(tareaActualizada.estado).toBe("C");
@@ -343,7 +341,7 @@ describe("Tarea Integration Tests", () => {
 
       // Verificar que la tarea ya no existe
       const tareasResponse = await httpClient.get("obtenerTareasPorUsuario");
-      const tareaEliminada = tareasResponse.data.datos.find((t: any) => t.id === tareaId);
+      const tareaEliminada = tareasResponse.data.datos.find((t: {id: string}) => t.id === tareaId);
       expect(tareaEliminada).toBeUndefined();
     });
 

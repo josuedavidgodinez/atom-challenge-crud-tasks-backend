@@ -4,7 +4,7 @@
 
 interface HttpResponse {
   status: number;
-  data: any;
+  data: unknown;
   headers: Record<string, string>;
 }
 
@@ -12,7 +12,7 @@ interface RequestOptions {
   method: "GET" | "POST" | "PUT" | "DELETE";
   url: string;
   headers?: Record<string, string>;
-  body?: any;
+  body?: unknown;
 }
 
 /**
@@ -90,21 +90,21 @@ export class FunctionsHttpClient {
   /**
    * Realiza una petición POST
    */
-  async post(endpoint: string, body?: any): Promise<HttpResponse> {
+  async post(endpoint: string, body?: unknown): Promise<HttpResponse> {
     return this.makeRequest("POST", endpoint, body);
   }
 
   /**
    * Realiza una petición PUT
    */
-  async put(endpoint: string, body?: any): Promise<HttpResponse> {
+  async put(endpoint: string, body?: unknown): Promise<HttpResponse> {
     return this.makeRequest("PUT", endpoint, body);
   }
 
   /**
    * Realiza una petición DELETE
    */
-  async delete(endpoint: string, body?: any): Promise<HttpResponse> {
+  async delete(endpoint: string, body?: unknown): Promise<HttpResponse> {
     return this.makeRequest("DELETE", endpoint, body);
   }
 
@@ -114,7 +114,7 @@ export class FunctionsHttpClient {
   private async makeRequest(
     method: "GET" | "POST" | "PUT" | "DELETE",
     endpoint: string,
-    body?: any
+    body?: unknown
   ): Promise<HttpResponse> {
     const url = `${this.baseUrl}/${endpoint}`;
     const headers: Record<string, string> = {};
