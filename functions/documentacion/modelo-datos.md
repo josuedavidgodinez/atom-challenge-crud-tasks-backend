@@ -1,61 +1,17 @@
 # Modelo de Datos
 
-## Base de Datos: Firestore
+## Firestore - Colecciones
 
-El proyecto utiliza **Cloud Firestore** como base de datos NoSQL orientada a documentos.
+### `usuarios`
 
-## Estructura de Colecciones
-
-### Colección: `usuarios`
-
-Almacena la información de los usuarios registrados en el sistema.
-
-#### Esquema del Documento
-
-| Campo | Tipo | Descripción | Requerido |
-|-------|------|-------------|-----------|
-| `id` | string | ID autogenerado por Firestore | ✓ |
-| `correo` | string | Correo electrónico único del usuario | ✓ |
-
-#### Ejemplo de Documento
 ```json
 {
   "id": "Sc8brx613ZHW7wRKvgJ5",
-  "correo": "usuario@ejemplo.com"
+  "correo": "usuario@ejemplo.com"  // único, requerido
 }
 ```
 
-#### Ruta del Documento
-```
-/usuarios/{userId}
-```
-
-#### Índices
-- Campo `correo` indexado automáticamente para búsquedas
-
-#### Validaciones
-- **Correo único**: No pueden existir dos usuarios con el mismo correo
-- **Formato de correo**: Debe cumplir con formato estándar de email (regex: `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`)
-- **Correo requerido**: No puede ser vacío o null
-
----
-
-### Colección: `tareas`
-
-Almacena las tareas creadas por los usuarios.
-
-#### Esquema del Documento
-
-| Campo | Tipo | Descripción | Requerido | Valores Permitidos |
-|-------|------|-------------|-----------|-------------------|
-| `id` | string | ID autogenerado por Firestore | ✓ | - |
-| `titulo` | string | Título de la tarea | ✓ | No vacío |
-| `descripcion` | string | Descripción detallada de la tarea | ✗ | Cualquier string |
-| `estado` | string | Estado actual de la tarea | ✓ | "P" (Pendiente), "C" (Completada) |
-| `fecha_de_creacion` | Timestamp | Fecha y hora de creación | ✓ | Timestamp de Firestore |
-| `usuario` | string | Referencia al documento del usuario propietario | ✓ | Ruta: `/usuarios/{userId}` |
-
-#### Ejemplo de Documento
+### `tareas`
 ```json
 {
   "id": "zUxIlHuigJMC8TB7laxf",

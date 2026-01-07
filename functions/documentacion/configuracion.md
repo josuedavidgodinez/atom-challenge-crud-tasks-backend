@@ -1,166 +1,49 @@
-# Guía de Configuración y Despliegue
+# Configuración y Despliegue
 
-## Requisitos Previos
+## Requisitos
 
-### Software Necesario
+- Node.js 24.x + Firebase CLI + Java 17+
+- Cuenta de Firebase
 
-- Node.js (versión recomendada: 18.x o superior)
-- npm (viene con Node.js)
-- Firebase CLI
-- Git
-
-### Cuentas Requeridas
-
-- Cuenta de Google/Firebase
-- Proyecto de Firebase creado
-
----
-
-## Configuración del Entorno Local
-
-### 1. Clonar el Repositorio
+## Setup Local
 
 ```bash
-# Clonar el proyecto
-git clone <repository-url>
-cd atom-challenge-crud-tasks-backend
-```
+# Instalar
+cd functions && npm install
 
-### 2. Instalación de Dependencias
-
-```bash
-# Instalar dependencias raíz
-npm install
-
-# Instalar dependencias de functions
-cd functions
-npm install
-```
-
-### 3. Configuración de Firebase
-
-```bash
-# Instalar Firebase CLI globalmente (si no está instalado)
-npm install -g firebase-tools
-
-# Autenticarse con Firebase
+# Configurar Firebase
 firebase login
+firebase use --add
 
-# Inicializar el proyecto (si es necesario)
-firebase init
+# Desarrollo
+npm run build && npm run serve
 ```
 
-### 4. Variables de Entorno
+## Emuladores
 
-> **PENDIENTE**: Documentar variables de entorno necesarias
-
----
-
-## Estructura de Configuración
-
-### Archivos de Configuración
-
-#### `firebase.json`
-> **PENDIENTE**: Documentar configuración de Firebase
-
-#### `firestore.rules`
-> **PENDIENTE**: Documentar reglas de seguridad de Firestore
-
-#### `firestore.indexes.json`
-> **PENDIENTE**: Documentar índices de Firestore
-
-#### `functions/tsconfig.json`
-> **PENDIENTE**: Documentar configuración de TypeScript
-
----
-
-## Desarrollo Local
-
-### Emuladores de Firebase
+**Puertos:** Functions (5001) | Firestore (8080) | Auth (9099) | UI (4000)
 
 ```bash
-# Iniciar emuladores
 firebase emulators:start
 ```
 
-> **PENDIENTE**: Documentar configuración de emuladores y puertos
-
-### Compilación de TypeScript
+## Deploy
 
 ```bash
-# Desde el directorio functions
+# Build
 npm run build
-```
 
-### Modo de Desarrollo
+# Deploy completo
+firebase deploy
 
-> **PENDIENTE**: Documentar scripts de desarrollo y hot-reload
-
----
-
-## Testing
-
-### Configuración de Tests
-
-> **PENDIENTE**: Documentar framework de testing y configuración
-
-### Ejecutar Tests
-
-```bash
-# Tests unitarios
-npm test
-
-# Tests con coverage
-npm run test:coverage
-```
-
----
-
-## Despliegue a Producción
-
-### 1. Preparación
-
-> **PENDIENTE**: Documentar checklist pre-despliegue
-
-### 2. Build de Producción
-
-```bash
-# Compilar TypeScript
-cd functions
-npm run build
-```
-
-### 3. Desplegar Functions
-
-```bash
-# Desplegar todas las functions
+# Solo functions
 firebase deploy --only functions
-
-# Desplegar function específica
-firebase deploy --only functions:crearUsuario
 ```
 
-### 4. Desplegar Reglas de Firestore
+## Variables de Entorno
 
-```bash
-firebase deploy --only firestore:rules
-```
-
-### 5. Desplegar Índices
-
-```bash
-firebase deploy --only firestore:indexes
-```
-
----
-
-## Configuración de Seguridad
-
-### Reglas de Firestore
-
-> **PENDIENTE**: Documentar configuración de reglas de seguridad
-
-### Autenticación
+- **Local:** No requeridas (usa emuladores)
+- **Producción:** Configurar en Firebase Console
 
 > **PENDIENTE**: Documentar configuración de Firebase Authentication
 
@@ -221,11 +104,56 @@ firebase use <project-id>
 
 ### GitHub Actions
 
-> **PENDIENTE**: Documentar pipeline de CI/CD
+El proyecto utiliza GitHub Actions para automatización:
 
-### Despliegue Automático
+**Workflows configurados:**
 
-> **PENDIENTE**: Documentar configuración de despliegue automático
+1. **CI (Continuous Integration)**
+   - Lint y build
+   - Tests unitarios
+   - Tests de integración con emuladores
+   - Coverage
+
+2. **CD (Continuous Deployment)**
+   - Deploy automático a producción
+
+Ver documentación completa en [workflows.md](workflows.md)
+
+### Configuración de Secretos
+
+En GitHub Settings > Secrets:
+
+```bash
+# Obtener token
+firebase login:ci
+
+# Agregar en GitHub
+FIREBASE_TOKEN=<token-generado>
+```
+
+---
+
+## Testing
+
+### Ejecutar Tests
+
+```bash
+cd functions
+
+# Tests unitarios
+npm run test:unit
+
+# Tests de integración
+npm run test:integration
+
+# Todos los tests
+npm run test:all
+
+# Coverage
+npm run test:coverage:all
+```
+
+Ver documentación completa en [testing.md](testing.md)
 
 ---
 
@@ -233,7 +161,16 @@ firebase use <project-id>
 
 ### Revertir Despliegue
 
-> **PENDIENTE**: Documentar proceso de rollback
+Firebase mantiene versiones previas de las functions:
+
+```bash
+# Ver versiones
+firebase functions:list
+
+# No hay rollback automático, redesplegar versión anterior:
+git checkout <commit-anterior>
+npm run deploy
+```
 
 ---
 
@@ -255,6 +192,12 @@ npm update
 # Limpiar node_modules
 rm -rf node_modules
 npm install
+### Documentación Relacionada
+
+- [Testing](testing.md) - Guía completa de tests
+- [Workflows](workflows.md) - CI/CD con GitHub Actions
+- [Modelo de Datos](modelo-datos.md) - Estructura de la base de datos
+- [Arquitectura](principios-arquitectura.md) - Principios y patrones
 
 # Limpiar build
 rm -rf functions/lib

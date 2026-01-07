@@ -9,9 +9,14 @@
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test": "jest --selectProject=unit",
+    "test:unit": "jest --selectProject=unit",
+    "test:integration": "npm run test:integration:emulators",
+    "test:integration:emulators": "firebase emulators:exec --only firestore,auth,functions 'jest --selectProject=integration'",
+    "test:all": "npm run test:unit && npm run test:integration",
+    "test:watch": "jest --watch --selectProject=unit",
+    "test:coverage": "jest --coverage --selectProject=unit",
+    "test:coverage:all": "firebase emulators:exec --only firestore,auth,functions 'jest --coverage'"
   },
   "engines": {
     "node": "24"

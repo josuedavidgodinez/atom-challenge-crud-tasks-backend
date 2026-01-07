@@ -31,4 +31,21 @@ module.exports = {
       },
     },
   },
+  // Configuración para tests de integración
+  projects: [
+    {
+      displayName: "unit",
+      testMatch: ["<rootDir>/tests/services/**/*.test.ts", "<rootDir>/tests/utils/**/*.test.ts"],
+      preset: "ts-jest",
+      testEnvironment: "node",
+    },
+    {
+      displayName: "integration",
+      testMatch: ["<rootDir>/tests/integration/**/*.test.ts"],
+      preset: "ts-jest",
+      testEnvironment: "node",
+      setupFilesAfterEnv: ["<rootDir>/tests/integration/jest.setup.ts"],
+      testTimeout: 30000, // 30 segundos para tests de integración
+    },
+  ],
 };
