@@ -62,7 +62,7 @@ export class FunctionsHttpClient {
   private baseUrl: string;
   private token?: string;
 
-  constructor(baseUrl: string = "http://localhost:5001/demo-test-project/us-central1") {
+  constructor(baseUrl: string = "http://localhost:5001/atom-challenge-crud-tasks/us-central1") {
     this.baseUrl = baseUrl;
   }
 

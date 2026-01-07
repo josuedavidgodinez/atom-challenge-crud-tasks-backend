@@ -5,7 +5,7 @@ import * as admin from "firebase-admin";
 
 // Variables globales para los emuladores
 export const EMULATOR_CONFIG = {
-  projectId: "demo-test-project",
+  projectId: "atom-challenge-crud-tasks",
   firestore: {
     host: "localhost",
     port: 8080,
