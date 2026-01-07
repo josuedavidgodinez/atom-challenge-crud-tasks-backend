@@ -13,6 +13,5 @@
     "types": ["jest", "node"]
   },
   "compileOnSave": true,
-  "include": ["src/**/*", "tests/**/*", "**/*.test.ts"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/**/*", "tests/**/*", "**/*.test.ts"]
 }
