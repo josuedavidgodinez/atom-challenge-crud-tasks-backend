@@ -32,28 +32,6 @@ class DatabaseFirestore implements BasedeDatos {
     return DatabaseFirestore.instancia;
   }
 
-
-    /**
-     * Desconecta de la base de datos
-     */
-    public async desconectar(): Promise<void> {
-        try {
-            await this.db.terminate();
-            this.conectado = false;
-            console.log("Desconectado de Firestore");
-        } catch (error) {
-            console.error("Error al desconectar de Firestore:", error);
-            throw error;
-        }
-    }
-
-    /**
-     * Verifica si está conectado a la base de datos
-     */
-    public estaConectado(): boolean {
-        return this.conectado;
-    }
-
     /**
      * Obtiene datos de una ruta con query
      */

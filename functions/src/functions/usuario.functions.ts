@@ -2,6 +2,7 @@ import {onRequest} from "firebase-functions/v2/https";
 import {UsuarioService} from "../services";
 import {CrearUsuario} from "../types/usuario.types";
 import {validarMetodoPost} from "../middlewares/validarMetodoPost";
+import {validarJSON} from "../middlewares/validarJSON";
 
 const usuarioService = new UsuarioService();
 
@@ -15,6 +16,7 @@ export const crearUsuario = onRequest(
     {invoker: "public"},
     async (request, response) => {
   if (!validarMetodoPost(request, response)) return;
+  if (!validarJSON(request, response)) return;
 
   try {
     // Validar que hay datos en el request
@@ -54,6 +56,7 @@ export const loginUsuario = onRequest(
     {invoker: "public"},
     async (request, response) => {
   if (!validarMetodoPost(request, response)) return;
+  if (!validarJSON(request, response)) return;
 
   try {
     const correo: string = request?.body?.correo;

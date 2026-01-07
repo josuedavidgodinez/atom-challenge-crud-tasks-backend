@@ -3,6 +3,9 @@ import {TareaService} from "../services";
 import {validarMetodoGet} from "../middlewares/validarMetodoGet";
 import {validarAutenticacion, RequestConUsuario} from "../middlewares/validarAutenticacion";
 import {validarMetodoPost} from "../middlewares/validarMetodoPost";
+import {validarMetodoPut} from "../middlewares/validarMetodoPut";
+import {validarMetodoDelete} from "../middlewares/validarMetodoDelete";
+import {validarJSON} from "../middlewares/validarJSON";
 
 const tareaService = new TareaService();
 
@@ -38,6 +41,7 @@ export const crearTarea = onRequest(
   {invoker: "public"},
   async (request: RequestConUsuario, response) => {
     if (!validarMetodoPost(request, response)) return;
+    if (!validarJSON(request, response)) return;
     if (!await validarAutenticacion(request, response)) return;
 
     try {
@@ -49,6 +53,70 @@ export const crearTarea = onRequest(
       response.status(statusCode).send({exito, mensaje});
     } catch (error) {
       console.error("Error en crearTarea:", error);
+      response.status(500).send({exito: false, mensaje: "Error al procesar la solicitud"});
+    }
+  }
+);
+
+/**
+ * Cloud Function: Actualizar Tarea
+ * Endpoint: actualizarTarea
+ * Método: PUT (requiere Authorization: Bearer <ID_TOKEN>)
+ * Body: { tareaId: string, titulo?: string, descripcion?: string, estado?: "P" | "C" }
+ */
+export const actualizarTarea = onRequest(
+  {invoker: "public"},
+  async (request: RequestConUsuario, response) => {
+    if (!validarMetodoPut(request, response)) return;
+    if (!validarJSON(request, response)) return;
+    if (!await validarAutenticacion(request, response)) return;
+
+    try {
+      const uid = request.usuario!.uid;
+      const {tareaId, ...payload} = request.body || {};
+
+      if (!tareaId) {
+        response.status(400).send({exito: false, mensaje: "El ID de tarea es requerido"});
+        return;
+      }
+
+      const {exito, mensaje} = await tareaService.actualizarTarea(uid, tareaId, payload);
+      const statusCode = exito ? 200 : 400;
+      response.status(statusCode).send({exito, mensaje});
+    } catch (error) {
+      console.error("Error en actualizarTarea:", error);
+      response.status(500).send({exito: false, mensaje: "Error al procesar la solicitud"});
+    }
+  }
+);
+
+/**
+ * Cloud Function: Eliminar Tarea
+ * Endpoint: eliminarTarea
+ * Método: DELETE (requiere Authorization: Bearer <ID_TOKEN>)
+ * Body: { tareaId: string }
+ */
+export const eliminarTarea = onRequest(
+  {invoker: "public"},
+  async (request: RequestConUsuario, response) => {
+    if (!validarMetodoDelete(request, response)) return;
+    if (!validarJSON(request, response)) return;
+    if (!await validarAutenticacion(request, response)) return;
+
+    try {
+      const uid = request.usuario!.uid;
+      const {tareaId} = request.body || {};
+
+      if (!tareaId) {
+        response.status(400).send({exito: false, mensaje: "El ID de tarea es requerido"});
+        return;
+      }
+
+      const {exito, mensaje} = await tareaService.eliminarTarea(uid, tareaId);
+      const statusCode = exito ? 200 : 400;
+      response.status(statusCode).send({exito, mensaje});
+    } catch (error) {
+      console.error("Error en eliminarTarea:", error);
       response.status(500).send({exito: false, mensaje: "Error al procesar la solicitud"});
     }
   }

@@ -14,3 +14,6 @@ export type CrearTarea = Omit<Tarea, "id">;
 
 // Payload que envía el cliente para crear una tarea (sin fecha ni usuario)
 export type CrearTareaPayload = Pick<Tarea, "titulo" | "descripcion" | "estado">;
+
+// Payload que envía el cliente para actualizar una tarea (campos opcionales)
+export type ActualizarTareaPayload = Partial<Pick<Tarea, "titulo" | "descripcion" | "estado">>;
