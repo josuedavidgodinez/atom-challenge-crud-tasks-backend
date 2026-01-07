@@ -1,8 +1,10 @@
+export type EstadoTarea = "P" | "C";
+
 export interface Tarea {
   id: string;
   titulo: string;
   descripcion: string;
-  estado: "P" | "C"; // 'P' (Pendiente) o 'C' (Completada)
+  estado: EstadoTarea; // 'P' (Pendiente) o 'C' (Completada)
   fecha_de_creacion: unknown; // Independiente del framework - puede ser Timestamp, Date, etc.
   // Ruta al documento del usuario: /usuarios/<id>
   usuario: string;

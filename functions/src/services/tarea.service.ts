@@ -1,6 +1,14 @@
-import {Tarea, CrearTarea, CrearTareaPayload, ActualizarTareaPayload} from "../types/tarea.types";
+import {Tarea, CrearTarea, CrearTareaPayload, ActualizarTareaPayload, EstadoTarea} from "../types/tarea.types";
 import {TareaModel} from "../models";
 import {BasedeDatos, ITiempo} from "../types";
+import {
+  validarIdRequerido,
+  validarTituloRequerido,
+  validarEstado,
+  validarPropiedadTarea,
+  construirPathUsuario,
+  normalizarTexto,
+} from "../utils";
 
 export class TareaService {
   private tareaModel: TareaModel;
@@ -15,7 +23,7 @@ export class TareaService {
    * Valida que la tarea exista y pertenezca al usuario autenticado
    * @private
    */
-  private async validarPropiedadTarea(
+  private async validarPropiedadTareaInterno(
     usuarioId: string,
     tareaId: string
   ): Promise<{exito: boolean; tarea?: Tarea; mensaje?: string}> {
@@ -25,10 +33,11 @@ export class TareaService {
       return {exito: false, mensaje: "Tarea no encontrada"};
     }
 
-    // Verificar que la tarea pertenezca al usuario
-    const usuarioPath = `/usuarios/${usuarioId}`;
-    if (tarea.usuario !== usuarioPath) {
-      return {exito: false, mensaje: "No tienes permiso para acceder a esta tarea"};
+    // Verificar que la tarea pertenezca al usuario usando utils
+    const usuarioPath = construirPathUsuario(usuarioId);
+    const validacion = validarPropiedadTarea(usuarioPath, tarea.usuario);
+    if (!validacion.valido) {
+      return {exito: false, mensaje: validacion.mensaje};
     }
 
     return {exito: true, tarea};
@@ -36,8 +45,9 @@ export class TareaService {
 
   async obtenerTareasPorUsuario(usuarioId: string): Promise<{exito: boolean; datos?: Tarea[]; mensaje: string}> {
     try {
-      if (!usuarioId || usuarioId.trim() === "") {
-        return {exito: false, mensaje: "El ID de usuario es requerido"};
+      const validacion = validarIdRequerido(usuarioId, "ID de usuario");
+      if (!validacion.valido) {
+        return {exito: false, mensaje: validacion.mensaje!};
       }
 
       const tareas = await this.tareaModel.obtenerPorUsuario(usuarioId);
@@ -50,28 +60,30 @@ export class TareaService {
 
   async crearTarea(usuarioId: string, payload: CrearTareaPayload): Promise<{exito: boolean; mensaje: string}> {
     try {
-      if (!usuarioId || usuarioId.trim() === "") {
-        return {exito: false, mensaje: "El ID de usuario es requerido"};
+      // Validar usuario usando utils
+      const validacionUsuario = validarIdRequerido(usuarioId, "ID de usuario");
+      if (!validacionUsuario.valido) {
+        return {exito: false, mensaje: validacionUsuario.mensaje!};
       }
 
-      // Validaciones básicas
-      if (!payload?.titulo || payload.titulo.trim() === "") {
-        return {exito: false, mensaje: "El título es requerido"};
+      // Validar título usando utils
+      const validacionTitulo = validarTituloRequerido(payload?.titulo);
+      if (!validacionTitulo.valido) {
+        return {exito: false, mensaje: validacionTitulo.mensaje!};
       }
 
-      const estadosValidos = ["P", "C"]; // Pendiente, Completada
-      if (!estadosValidos.includes(payload.estado)) {
-        return {exito: false, mensaje: "El estado debe ser 'P' o 'C'"};
+      // Validar estado usando utils
+      const validacionEstado = validarEstado(payload.estado);
+      if (!validacionEstado.valido) {
+        return {exito: false, mensaje: validacionEstado.mensaje!};
       }
-      const estado = payload.estado as "P" | "C";
-
 
       const datos: CrearTarea = {
-        titulo: payload.titulo.trim(),
-        descripcion: (payload.descripcion || "").trim(),
-        estado,
+        titulo: normalizarTexto(payload.titulo),
+        descripcion: normalizarTexto(payload.descripcion),
+        estado: payload.estado as EstadoTarea,
         fecha_de_creacion: this.tiempo.ahora(),
-        usuario: `/usuarios/${usuarioId}`,
+        usuario: construirPathUsuario(usuarioId),
       };
 
       const ok = await this.tareaModel.crear(datos);
@@ -90,38 +102,42 @@ export class TareaService {
     payload: ActualizarTareaPayload
   ): Promise<{exito: boolean; mensaje: string}> {
     try {
-      if (!usuarioId || usuarioId.trim() === "") {
-        return {exito: false, mensaje: "El ID de usuario es requerido"};
+      // Validar IDs usando utils
+      const validacionUsuario = validarIdRequerido(usuarioId, "ID de usuario");
+      if (!validacionUsuario.valido) {
+        return {exito: false, mensaje: validacionUsuario.mensaje!};
       }
 
-      if (!tareaId || tareaId.trim() === "") {
-        return {exito: false, mensaje: "El ID de tarea es requerido"};
+      const validacionTarea = validarIdRequerido(tareaId, "ID de tarea");
+      if (!validacionTarea.valido) {
+        return {exito: false, mensaje: validacionTarea.mensaje!};
       }
 
       // Validar existencia y propiedad de la tarea
-      const validacion = await this.validarPropiedadTarea(usuarioId, tareaId);
+      const validacion = await this.validarPropiedadTareaInterno(usuarioId, tareaId);
       if (!validacion.exito) {
         return {exito: false, mensaje: validacion.mensaje!};
       }
 
-      // Validar campos si se envían
+      // Validar campos si se envían usando utils
       const datosActualizar: ActualizarTareaPayload = {};
 
       if (payload.titulo !== undefined) {
-        if (payload.titulo.trim() === "") {
-          return {exito: false, mensaje: "El título no puede estar vacío"};
+        const validacionTitulo = validarTituloRequerido(payload.titulo);
+        if (!validacionTitulo.valido) {
+          return {exito: false, mensaje: validacionTitulo.mensaje!};
         }
-        datosActualizar.titulo = payload.titulo.trim();
+        datosActualizar.titulo = normalizarTexto(payload.titulo);
       }
 
       if (payload.descripcion !== undefined) {
-        datosActualizar.descripcion = payload.descripcion.trim();
+        datosActualizar.descripcion = normalizarTexto(payload.descripcion);
       }
 
       if (payload.estado !== undefined) {
-        const estadosValidos: Array<"P" | "C"> = ["P", "C"];
-        if (!estadosValidos.includes(payload.estado)) {
-          return {exito: false, mensaje: "El estado debe ser 'P' o 'C'"};
+        const validacionEstado = validarEstado(payload.estado);
+        if (!validacionEstado.valido) {
+          return {exito: false, mensaje: validacionEstado.mensaje!};
         }
         datosActualizar.estado = payload.estado;
       }
@@ -143,16 +159,19 @@ export class TareaService {
 
   async eliminarTarea(usuarioId: string, tareaId: string): Promise<{exito: boolean; mensaje: string}> {
     try {
-      if (!usuarioId || usuarioId.trim() === "") {
-        return {exito: false, mensaje: "El ID de usuario es requerido"};
+      // Validar IDs usando utils
+      const validacionUsuario = validarIdRequerido(usuarioId, "ID de usuario");
+      if (!validacionUsuario.valido) {
+        return {exito: false, mensaje: validacionUsuario.mensaje!};
       }
 
-      if (!tareaId || tareaId.trim() === "") {
-        return {exito: false, mensaje: "El ID de tarea es requerido"};
+      const validacionTarea = validarIdRequerido(tareaId, "ID de tarea");
+      if (!validacionTarea.valido) {
+        return {exito: false, mensaje: validacionTarea.mensaje!};
       }
 
       // Validar existencia y propiedad de la tarea
-      const validacion = await this.validarPropiedadTarea(usuarioId, tareaId);
+      const validacion = await this.validarPropiedadTareaInterno(usuarioId, tareaId);
       if (!validacion.exito) {
         return {exito: false, mensaje: validacion.mensaje!};
       }

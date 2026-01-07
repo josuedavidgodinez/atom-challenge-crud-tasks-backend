@@ -1,6 +1,7 @@
 import {UsuarioModel} from "../models";
 import {Usuario, CrearUsuario} from "../types/usuario.types";
 import {BasedeDatos, IAutenticacion} from "../types";
+import {validarEmail} from "../utils";
 
 /**
  * Servicio de Usuario - Lógica de negocio para operaciones de usuario
@@ -21,20 +22,12 @@ export class UsuarioService {
    */
   async crearUsuario(datosUsuario: CrearUsuario): Promise<{exito: boolean; mensaje: string}> {
     try {
-      // Validar que el correo no esté vacío
-      if (!datosUsuario.correo || datosUsuario.correo.trim() === "") {
+      // Validar correo usando utils
+      const validacionEmail = validarEmail(datosUsuario.correo);
+      if (!validacionEmail.valido) {
         return {
           exito: false,
-          mensaje: "El correo electrónico es requerido",
-        };
-      }
-
-      // Validar formato de correo (básico)
-      const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!regexCorreo.test(datosUsuario.correo)) {
-        return {
-          exito: false,
-          mensaje: "El formato del correo electrónico no es válido",
+          mensaje: validacionEmail.mensaje!,
         };
       }
 
@@ -80,11 +73,12 @@ export class UsuarioService {
    */
   async loginUsuario(correo: string): Promise<{exito: boolean; token?: string; usuario?: Usuario; mensaje: string}> {
     try {
-      // Validar que el correo no esté vacío
-      if (!correo || correo.trim() === "") {
+      // Validar correo usando utils
+      const validacionEmail = validarEmail(correo);
+      if (!validacionEmail.valido) {
         return {
           exito: false,
-          mensaje: "El correo electrónico es requerido",
+          mensaje: validacionEmail.mensaje!,
         };
       }
 

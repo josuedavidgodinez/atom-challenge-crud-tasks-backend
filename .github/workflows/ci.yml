@@ -33,6 +33,10 @@ jobs:
         working-directory: functions
         run: npm run lint
 
+      - name: Run Tests
+        working-directory: functions
+        run: npm test
+
       - name: Build TypeScript
         working-directory: functions
         run: npm run build

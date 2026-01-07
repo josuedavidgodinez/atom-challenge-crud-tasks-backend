@@ -9,10 +9,10 @@
     "sourceMap": true,
     "strict": false,
     "target": "es2017",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["jest", "node"]
   },
   "compileOnSave": true,
-  "include": [
-    "src"
-  ]
+  "include": ["src/**/*", "tests/**/*", "**/*.test.ts"],
+  "exclude": ["node_modules", "dist"]
 }
