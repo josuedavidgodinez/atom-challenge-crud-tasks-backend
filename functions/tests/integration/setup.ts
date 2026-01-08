@@ -68,7 +68,6 @@ export async function clearAuth() {
     await Promise.all(deletePromises);
   } catch (error) {
     // Si no hay usuarios, continuar
-    console.log("No hay usuarios para limpiar");
   }
 }
 
@@ -101,10 +100,31 @@ export async function generateCustomToken(uid: string, claims?: object) {
 }
 
 /**
- * Convierte un custom token en un ID token (simulado para tests)
+ * Convierte un custom token en un ID token llamando al Auth Emulator
  */
 export async function getIdTokenFromCustomToken(customToken: string): Promise<string> {
-  // En el emulador, el custom token sirve como ID token para propósitos de testing
-  // En producción usarías la REST API de Firebase Auth
-  return customToken;
+  const apiKey = "fake-api-key"; // En el emulador cualquier API key funciona
+  const authEmulatorUrl = `http://${EMULATOR_CONFIG.auth.host}:${EMULATOR_CONFIG.auth.port}`;
+
+  const response = await fetch(
+    `${authEmulatorUrl}/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        token: customToken,
+        returnSecureToken: true,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Error intercambiando token: ${error}`);
+  }
+
+  const data = await response.json();
+  return data.idToken;
 }

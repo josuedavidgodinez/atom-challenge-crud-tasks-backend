@@ -80,6 +80,20 @@ class DatabaseFirestore implements BasedeDatos {
     }
 
     /**
+     * Guarda datos en una ruta con un ID específico
+     */
+    public async guardarDatosConId<T>(ruta: string, id: string, datos: T): Promise<boolean> {
+        try {
+            await this.db.collection(ruta).doc(id).set(datos);
+            console.log(`Datos guardados en ${ruta} con ID ${id}`);
+            return true;
+        } catch (error) {
+            console.error(`Error al guardar datos en ${ruta}:`, error);
+            return false;
+        }
+    }
+
+    /**
      * Elimina datos por ID
      */
     public async eliminarDatos<I>(ruta: string, id: I): Promise<boolean> {

@@ -10,13 +10,14 @@ export class UsuarioModel {
   constructor(private db: BasedeDatos) {}
 
   /**
-   * Crea un nuevo usuario en Firestore
+   * Crea un nuevo usuario en Firestore con un UID específico
+   * @param uid - UID del usuario (generalmente del sistema de autenticación)
    * @param datosUsuario - Datos del usuario a crear
    * @returns Promise<boolean> - true si se guardó correctamente
    */
-  async crear(datosUsuario: CrearUsuario): Promise<boolean> {
+  async crear(uid: string, datosUsuario: CrearUsuario): Promise<boolean> {
     try {
-      return await this.db.guardarDatos(this.coleccion, datosUsuario);
+      return await this.db.guardarDatosConId(this.coleccion, uid, datosUsuario);
     } catch (error) {
       console.error("Error al crear usuario:", error);
       throw error;

@@ -18,6 +18,7 @@ describe("UsuarioService", () => {
     jest.clearAllMocks();
     mockDb = {} as jest.Mocked<BasedeDatos>;
     mockAutenticacion = {
+      crearUsuario: jest.fn(),
       crearTokenPersonalizado: jest.fn(),
     } as jest.Mocked<IAutenticacion>;
 
@@ -33,6 +34,7 @@ describe("UsuarioService", () => {
   describe("crearUsuario", () => {
     it("debe crear usuario con email válido", async () => {
       mockObtenerPorQuery.mockResolvedValue(null);
+      (mockAutenticacion.crearUsuario as jest.Mock).mockResolvedValue("fake-uid-123");
       mockCrear.mockResolvedValue(true);
 
       const resultado = await usuarioService.crearUsuario({
@@ -41,7 +43,8 @@ describe("UsuarioService", () => {
       } as CrearUsuario);
 
       expect(resultado.exito).toBe(true);
-      expect(mockCrear).toHaveBeenCalled();
+      expect(mockAutenticacion.crearUsuario).toHaveBeenCalledWith("test@example.com");
+      expect(mockCrear).toHaveBeenCalledWith("fake-uid-123", expect.any(Object));
     });
 
     it("debe rechazar emails inválidos", async () => {

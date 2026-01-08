@@ -6,6 +6,7 @@
 import {
   initializeFirebaseForTests,
   cleanupDatabase,
+  getIdTokenFromCustomToken,
 } from "./setup";
 import {FunctionsHttpClient} from "./utils/http-client";
 
@@ -26,8 +27,12 @@ describe("Tarea Integration Tests", () => {
     await httpClient.post("crearUsuario", {correo});
 
     const loginResponse = await httpClient.post("loginUsuario", {correo});
+    
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    authToken = (loginResponse.data as any).token;
+    const customToken = (loginResponse.data as any).token;
+
+    // Intercambiar custom token por ID token
+    authToken = await getIdTokenFromCustomToken(customToken);
 
     // Configurar token en el cliente
     httpClient.setAuthToken(authToken);
@@ -203,7 +208,9 @@ describe("Tarea Integration Tests", () => {
       const otroLogin = await httpClient.post("loginUsuario", {correo: otroCorreo});
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      httpClient.setAuthToken((otroLogin.data as any).token);
+      const otroCustomToken = (otroLogin.data as any).token;
+      const otroIdToken = await getIdTokenFromCustomToken(otroCustomToken);
+      httpClient.setAuthToken(otroIdToken);
       await httpClient.post("crearTarea", {
         titulo: "Tarea de otro",
         descripcion: "Tarea de otro usuario",
@@ -310,7 +317,9 @@ describe("Tarea Integration Tests", () => {
 
       // Intentar actualizar con el otro usuario
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      httpClient.setAuthToken((otroLogin.data as any).token);
+      const otroCustomToken = (otroLogin.data as any).token;
+      const otroIdToken = await getIdTokenFromCustomToken(otroCustomToken);
+      httpClient.setAuthToken(otroIdToken);
       const actualizacion = {
         tareaId, // ID de tarea del primer usuario
         titulo: "Intento de actualizar tarea ajena",
@@ -392,7 +401,9 @@ describe("Tarea Integration Tests", () => {
 
       // Intentar eliminar con el otro usuario
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      httpClient.setAuthToken((otroLogin.data as any).token);
+      const otroCustomToken = (otroLogin.data as any).token;
+      const otroIdToken = await getIdTokenFromCustomToken(otroCustomToken);
+      httpClient.setAuthToken(otroIdToken);
 
       // Act
       const response = await httpClient.delete("eliminarTarea", {tareaId});

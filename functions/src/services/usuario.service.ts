@@ -43,8 +43,11 @@ export class UsuarioService {
         };
       }
 
-      // Crear el usuario
-      const resultado = await this.usuarioModel.crear(datosUsuario);
+      // Primero crear el usuario en Firebase Auth
+      const uid = await this.autenticacion.crearUsuario(datosUsuario.correo);
+
+      // Luego guardar en Firestore con el mismo UID
+      const resultado = await this.usuarioModel.crear(uid, datosUsuario);
 
       if (resultado) {
         return {

@@ -26,6 +26,13 @@ export interface IVerificadorToken {
  */
 export interface IAutenticacion {
   /**
+   * Crea un usuario en el sistema de autenticación
+   * @param email - Correo electrónico del usuario
+   * @returns UID del usuario creado
+   */
+  crearUsuario(email: string): Promise<string>;
+
+  /**
    * Crea un token personalizado para el usuario
    * @param uid - ID único del usuario
    * @param claims - Claims adicionales para el token

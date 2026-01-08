@@ -7,6 +7,8 @@ interface BasedeDatos {
 
     guardarDatos: <T>(ruta: string, datos: T) => Promise<boolean>;
 
+    guardarDatosConId: <T>(ruta: string, id: string, datos: T) => Promise<boolean>;
+
     eliminarDatos: <I>(ruta: string, id: I) => Promise<boolean>;
 
     actualizarDatos: <T, I>(ruta: string, datos: Partial<T>, id: I) => Promise<void>;

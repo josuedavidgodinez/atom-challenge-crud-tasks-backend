@@ -67,7 +67,16 @@ export const loginUsuario = onRequest(
     if (!validarJSON(request, response)) return;
 
   try {
-    const correo: string = request?.body?.correo;
+    // Validar que se proporcionó el correo
+    if (!request.body || !request.body.correo) {
+      response.status(400).send({
+        exito: false,
+        mensaje: "No se proporcionó el correo",
+      });
+      return;
+    }
+
+    const correo: string = request.body.correo;
 
     // Llamar al servicio para autenticar el usuario
     const {exito, token, usuario, mensaje} = await usuarioService.loginUsuario(correo);
