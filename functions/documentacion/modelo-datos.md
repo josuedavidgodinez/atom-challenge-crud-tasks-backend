@@ -157,21 +157,6 @@ tareas
   .where("usuario", "==", `/usuarios/${userId}`)
 ```
 
-### Índices Requeridos
-
-Firestore crea automáticamente índices simples para cada campo. Para consultas compuestas futuras, se pueden definir en [firestore.indexes.json](../../firestore.indexes.json).
-
-**Índices Actuales**:
-- `usuarios.correo` (automático)
-- `tareas.usuario` (automático)
-- `tareas.estado` (automático)
-
----
-
-## Reglas de Seguridad
-
-Las reglas de seguridad de Firestore están definidas en [firestore.rules](../../firestore.rules).
-
 ### Consideraciones de Seguridad
 
 1. **Autenticación**:
@@ -219,69 +204,3 @@ type ActualizarTareaPayload = Partial<Pick<Tarea, "titulo" | "descripcion" | "es
 ```
 Ubicación: [functions/src/types/tarea.types.ts](../src/types/tarea.types.ts)
 
----
-
-## Migraciones y Evolución del Esquema
-
-### Estrategia de Migraciones
-
-Firestore es schema-less, pero se recomienda:
-
-1. **Versionado de Documentos**:
-   - Agregar campo `version` para rastrear cambios de esquema
-   - Ejemplo: `version: 1`
-
-2. **Migraciones Progresivas**:
-   - Soportar múltiples versiones simultáneamente
-   - Migrar datos bajo demanda (lazy migration)
-
-3. **Campos Opcionales**:
-   - Nuevos campos deben ser opcionales inicialmente
-   - Validar existencia antes de usar
-
-### Cambios Futuros Considerados
-
-- **Usuarios**: 
-  - Campo `nombre` (opcional)
-  - Campo `fecha_registro` (Timestamp)
-  - Campo `activo` (boolean)
-
-- **Tareas**:
-  - Campo `prioridad` ("alta" | "media" | "baja")
-  - Campo `fecha_vencimiento` (Timestamp, opcional)
-  - Campo `etiquetas` (array de strings)
-  - Campo `fecha_completada` (Timestamp, opcional)
-
----
-
-## Limitaciones de Firestore
-
-### Límites a Considerar
-
-- **Máximo de escrituras**: 10,000 escrituras/segundo por colección
-- **Tamaño de documento**: 1 MB máximo
-- **Profundidad de subcolecciones**: 100 niveles
-- **Índices compuestos**: 200 por base de datos
-
-### Optimizaciones Aplicadas
-
-1. **Desnormalización**: Referencias por ruta en lugar de subcolecciones
-2. **Índices simples**: Queries que usan índices automáticos
-3. **Batch operations**: No implementado aún, considerar para operaciones masivas
-
----
-
-## Backup y Recuperación
-
-### Estrategia de Backup
-
-Firebase proporciona backups automáticos (requiere configuración):
-- Exportación programada a Cloud Storage
-- Retención de 30 días
-- Restauración point-in-time
-
-### Recomendaciones
-
-1. Habilitar exportaciones automáticas diarias
-2. Almacenar exports en bucket separado
-3. Probar proceso de restauración periódicamente
