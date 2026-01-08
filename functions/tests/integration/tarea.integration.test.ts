@@ -27,7 +27,7 @@ describe("Tarea Integration Tests", () => {
     await httpClient.post("crearUsuario", {correo});
 
     const loginResponse = await httpClient.post("loginUsuario", {correo});
-    
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const customToken = (loginResponse.data as any).token;
 
