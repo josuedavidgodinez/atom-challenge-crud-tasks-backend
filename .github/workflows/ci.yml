@@ -134,6 +134,10 @@ jobs:
         working-directory: functions
         run: npm run build
 
+      - name: Create .env file for emulators
+        working-directory: functions
+        run: echo "CORS_ORIGIN=*" > .env
+
       - name: Run Integration Tests with Emulators
         working-directory: functions
         run: npm run test:integration

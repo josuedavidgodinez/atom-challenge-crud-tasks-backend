@@ -1,5 +1,6 @@
 import {defineString} from "firebase-functions/params";
 import cors from "cors";
+import {Request, Response} from "express";
 
 /**
  * Variable de entorno para CORS (Firebase Functions v2)
@@ -18,6 +19,7 @@ export const corsOrigin = defineString("CORS_ORIGIN", {
 
 /**
  * Obtiene los orígenes permitidos según la configuración
+ * Se evalúa en RUNTIME, no durante el deployment
  */
 const obtenerOrigenesPermitidos = (): string | string[] | boolean => {
   const origin = corsOrigin.value();
@@ -34,13 +36,20 @@ const obtenerOrigenesPermitidos = (): string | string[] | boolean => {
 };
 
 /**
- * Handler de CORS configurado según el entorno
- * Usa la variable de entorno CORS_ORIGIN definida con defineString
+ * Handler de CORS que evalúa la configuración en RUNTIME
+ * Esto evita el warning de Firebase sobre llamar .value() durante deployment
  */
-export const corsHandler = cors({
-  origin: obtenerOrigenesPermitidos(),
-  credentials: true,
-});
+export const corsHandler = (
+  req: Request,
+  res: Response,
+  next: () => Promise<void>
+): void => {
+  const handler = cors({
+    origin: obtenerOrigenesPermitidos(),
+    credentials: true,
+  });
+  handler(req, res, next);
+};
 
 /**
  * Configuración de CORS para desarrollo (acepta todo)
