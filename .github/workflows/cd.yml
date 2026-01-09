@@ -38,15 +38,16 @@ jobs:
         working-directory: functions
         run: npm run build
 
-      - name: Configure CORS Origin
+      - name: Create .env file for Firebase Functions
+        working-directory: functions
         run: |
           echo "Configurando CORS_ORIGIN para producción"
-          echo "CORS_ORIGIN=${{ secrets.CORS_ORIGIN_PRODUCTION }}" >> $GITHUB_ENV
+          echo "CORS_ORIGIN=${{ secrets.CORS_ORIGIN_PRODUCTION }}" > .env
+          cat .env
 
       - name: Deploy to Firebase
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-          CORS_ORIGIN: ${{ secrets.CORS_ORIGIN_PRODUCTION }}
         run: firebase deploy --only functions --token "$FIREBASE_TOKEN" --non-interactive
 
       - name: Deployment Success Notification
