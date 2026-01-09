@@ -38,9 +38,15 @@ jobs:
         working-directory: functions
         run: npm run build
 
+      - name: Configure CORS Origin
+        run: |
+          echo "Configurando CORS_ORIGIN para producción"
+          echo "CORS_ORIGIN=${{ secrets.CORS_ORIGIN_PRODUCTION }}" >> $GITHUB_ENV
+
       - name: Deploy to Firebase
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          CORS_ORIGIN: ${{ secrets.CORS_ORIGIN_PRODUCTION }}
         run: firebase deploy --only functions --token "$FIREBASE_TOKEN" --non-interactive
 
       - name: Deployment Success Notification

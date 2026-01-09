@@ -5,9 +5,8 @@ import {validarMetodoGet, validarMetodoPost, validarMetodoPut, validarMetodoDele
 } from "../middlewares";
 import {DatabaseFirestore} from "../database/basededatos.firestore";
 import {TiempoFirestore, VerificadorTokenFirebase} from "../adapters";
-import cors from "cors";
+import {corsHandler, corsOrigin} from "../config/cors.config";
 
-const corsHandler = cors({origin: true});
 const db = DatabaseFirestore.obtenerInstancia();
 const tiempo = new TiempoFirestore();
 const verificadorToken = new VerificadorTokenFirebase();
@@ -20,7 +19,7 @@ const tareaService = new TareaService(db, tiempo);
  * Método: GET (requiere Authorization: Bearer <ID_TOKEN>)
  */
 export const obtenerTareasPorUsuario = onRequest(
-  {invoker: "public"},
+  {invoker: "public", cors: corsOrigin},
   async (request: RequestConUsuario, response) => {
     return corsHandler(request, response, async () => {
       if (!validarMetodoGet(request, response)) return;
@@ -45,7 +44,7 @@ export const obtenerTareasPorUsuario = onRequest(
  * Método: POST (requiere Authorization: Bearer <ID_TOKEN>)
  */
 export const crearTarea = onRequest(
-  {invoker: "public"},
+  {invoker: "public", cors: corsOrigin},
   async (request: RequestConUsuario, response) => {
     return corsHandler(request, response, async () => {
       if (!validarMetodoPost(request, response)) return;
@@ -74,7 +73,7 @@ export const crearTarea = onRequest(
  * Body: { tareaId: string, titulo?: string, descripcion?: string, estado?: "P" | "C" }
  */
 export const actualizarTarea = onRequest(
-  {invoker: "public"},
+  {invoker: "public", cors: corsOrigin},
   async (request: RequestConUsuario, response) => {
     return corsHandler(request, response, async () => {
       if (!validarMetodoPut(request, response)) return;
@@ -108,7 +107,7 @@ export const actualizarTarea = onRequest(
  * Body: { tareaId: string }
  */
 export const eliminarTarea = onRequest(
-  {invoker: "public"},
+  {invoker: "public", cors: corsOrigin},
   async (request: RequestConUsuario, response) => {
     return corsHandler(request, response, async () => {
       if (!validarMetodoDelete(request, response)) return;

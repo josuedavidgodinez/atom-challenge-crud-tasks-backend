@@ -4,9 +4,7 @@ import {CrearUsuario} from "../types/usuario.types";
 import {validarMetodoPost, validarJSON} from "../middlewares";
 import {DatabaseFirestore} from "../database/basededatos.firestore";
 import {AutenticacionFirebase} from "../adapters";
-import cors from "cors";
-
-const corsHandler = cors({origin: true});
+import {corsHandler, corsOrigin} from "../config/cors.config";
 const db = DatabaseFirestore.obtenerInstancia();
 const autenticacion = new AutenticacionFirebase();
 const usuarioService = new UsuarioService(db, autenticacion);
@@ -18,7 +16,7 @@ const usuarioService = new UsuarioService(db, autenticacion);
  * Body esperado: {correo: string, nombre?: string}
  */
 export const crearUsuario = onRequest(
-    {invoker: "public"},
+    {invoker: "public", cors: corsOrigin},
     async (request, response) => {
   return corsHandler(request, response, async () => {
     if (!validarMetodoPost(request, response)) return;
@@ -60,7 +58,7 @@ export const crearUsuario = onRequest(
  * Retorna: {exito: boolean, token?: string, usuario?: Usuario, mensaje: string}
  */
 export const loginUsuario = onRequest(
-    {invoker: "public"},
+    {invoker: "public", cors: corsOrigin},
     async (request, response) => {
   return corsHandler(request, response, async () => {
     if (!validarMetodoPost(request, response)) return;
